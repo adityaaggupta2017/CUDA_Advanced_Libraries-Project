@@ -1,0 +1,6 @@
+metric,value
+mean_silhouette,0.458972
+cluster_0_silhouette,0.34745
+cluster_1_silhouette,0.63373
+cluster_2_silhouette,0.393002
+gpu_ms,2.54669

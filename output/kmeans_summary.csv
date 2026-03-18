@@ -1,6 +1,7 @@
 metric,value
 k,3
-iterations,9
-inertia,141.154
-purity,0.813333
-gpu_time_ms,0.374784
+n_runs,5
+iterations,5
+inertia,140.966
+purity,0.833333
+total_gpu_ms,0.8192

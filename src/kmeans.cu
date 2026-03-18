@@ -3,6 +3,7 @@
 // GPU-accelerated K-means with custom CUDA kernels + Thrust reductions.
 
 #include "kmeans.h"
+#include "silhouette.h"
 
 #include <algorithm>
 #include <cassert>
@@ -315,4 +316,93 @@ void PrintKMeansResult(const KMeansResult& result, int k, int n_features) {
     printf(" ]\n");
   }
   printf("============================\n\n");
+}
+
+// ---------------------------------------------------------------------------
+// RunKMeansMulti – best-of-N restarts
+// ---------------------------------------------------------------------------
+
+void RunKMeansMulti(const float* d_data, int n_samples, int n_features,
+                    int k, int max_iter,
+                    unsigned int base_seed, int n_runs,
+                    KMeansResult* best_result) {
+  assert(best_result != nullptr);
+  best_result->inertia = FLT_MAX;
+  double total_ms = 0.0;
+
+  for (int r = 0; r < n_runs; ++r) {
+    KMeansResult candidate;
+    RunKMeans(d_data, n_samples, n_features, k, max_iter,
+              base_seed + static_cast<unsigned>(r), &candidate);
+    total_ms += candidate.gpu_ms;
+    if (candidate.inertia < best_result->inertia)
+      *best_result = std::move(candidate);
+  }
+  best_result->gpu_ms = total_ms;  // cumulative GPU time across all runs
+}
+
+// ---------------------------------------------------------------------------
+// RunElbowSweep – k=1..k_max sweep with silhouette score
+// ---------------------------------------------------------------------------
+
+void RunElbowSweep(const float* d_data, int n_samples, int n_features,
+                   int k_max, int max_iter,
+                   unsigned int base_seed, int n_runs_per_k,
+                   cublasHandle_t cublas_handle,
+                   ElbowResult* result) {
+  assert(result != nullptr);
+  result->k_values.clear();
+  result->inertias.clear();
+  result->silhouettes.clear();
+  result->total_gpu_ms = 0.0;
+
+  float best_sil = -2.f;
+  result->optimal_k = 1;
+
+  for (int k = 1; k <= k_max; ++k) {
+    KMeansResult km;
+    RunKMeansMulti(d_data, n_samples, n_features, k, max_iter,
+                   base_seed, n_runs_per_k, &km);
+    result->k_values.push_back(k);
+    result->inertias.push_back(km.inertia);
+    result->total_gpu_ms += km.gpu_ms;
+
+    float sil_score = 0.f;
+    if (k >= 2 && cublas_handle != nullptr) {
+      // Upload best-run labels to device for silhouette computation.
+      int* d_labels_elbow = nullptr;
+      CUDA_CHECK(cudaMalloc(&d_labels_elbow, n_samples * sizeof(int)));
+      CUDA_CHECK(cudaMemcpy(d_labels_elbow, km.labels.data(),
+                            n_samples * sizeof(int),
+                            cudaMemcpyHostToDevice));
+      SilhouetteResult sil;
+      ComputeSilhouette(d_data, d_labels_elbow, n_samples, n_features, k,
+                        cublas_handle, &sil);
+      CUDA_CHECK(cudaFree(d_labels_elbow));
+      sil_score = sil.mean_score;
+      result->total_gpu_ms += sil.gpu_ms;
+
+      if (sil_score > best_sil) {
+        best_sil          = sil_score;
+        result->optimal_k = k;
+      }
+    }
+    result->silhouettes.push_back(sil_score);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PrintElbowResult
+// ---------------------------------------------------------------------------
+
+void PrintElbowResult(const ElbowResult& result) {
+  printf("\n=== Elbow Method / Silhouette Sweep ===\n");
+  printf("  %-4s  %-14s  %-14s\n", "k", "Inertia", "Silhouette");
+  for (size_t i = 0; i < result.k_values.size(); ++i) {
+    printf("  %-4d  %-14.4f  %-14.4f\n",
+           result.k_values[i], result.inertias[i], result.silhouettes[i]);
+  }
+  printf("  Optimal k (max silhouette): %d\n", result.optimal_k);
+  printf("  Total GPU time: %.3f ms\n", result.total_gpu_ms);
+  printf("=======================================\n\n");
 }

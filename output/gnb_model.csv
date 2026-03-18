@@ -1,0 +1,4 @@
+class,mean_sepal_length_cm,mean_sepal_width_cm,mean_petal_length_cm,mean_petal_width_cm,var_sepal_length_cm,var_sepal_width_cm,var_petal_length_cm,var_petal_width_cm,log_prior
+Iris-setosa,-1.01458,0.842307,-1.30488,-1.25513,0.17877,0.76185,0.00954074,0.01947,-1.09861
+Iris-versicolor,0.112282,-0.657184,0.285087,0.167409,0.383344,0.516732,0.0699774,0.0662436,-1.09861
+Iris-virginica,0.902297,-0.185122,1.01979,1.08772,0.581769,0.545776,0.0965249,0.127779,-1.09861

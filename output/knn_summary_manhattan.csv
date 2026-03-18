@@ -1,0 +1,7 @@
+metric,value
+k,5
+distance,manhattan
+accuracy,0.953333
+macro_f1,0.953329
+weighted_f1,0.953329
+gpu_ms,5.39648

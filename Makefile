@@ -32,7 +32,10 @@ SRCS = src/main.cu        \
        src/normalizer.cu  \
        src/kmeans.cu      \
        src/knn.cu         \
-       src/pca.cu
+       src/pca.cu         \
+       src/silhouette.cu  \
+       src/gnb.cu         \
+       src/metrics.cu
 
 TARGET = iris_gpu
 

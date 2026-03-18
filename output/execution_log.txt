@@ -28,9 +28,9 @@
     petal_width_cm          0.10 / 2.50 / 1.1987
 =======================
 
-[main] Saved raw data  -> output/raw_data.csv
+[main] Saved raw data        -> output/raw_data.csv
 
-[main] Running GPU Z-score normalisation...
+[main] Running GPU Z-score normalisation (Thrust)...
 
 === Normalization Statistics (GPU Z-score) ===
   sepal_length_cm         mean= 5.8433  std= 0.8253
@@ -40,39 +40,146 @@
 ==============================================
 
 [main] Saved normalised data -> output/normalised_data.csv
-[main] Running GPU K-Means (k=3, max_iter=300, seed=42)...
+[main] Running GPU K-Means (k=3, 5 restarts, seed=42)...
 
 === K-Means Result (k=3) ===
-  Iterations : 9
-  Inertia    : 141.1542
-  GPU time   : 0.375 ms
-  Cluster sizes: 56 50 44 
+  Iterations : 5
+  Inertia    : 140.9658
+  GPU time   : 0.819 ms
+  Cluster sizes: 47 50 53 
   Centroids (normalised space):
-    Cluster 0: [ -0.0114 -0.8729 0.3769 0.3117 ]
+    Cluster 0: [ 1.1360 0.0966 0.9963 1.0172 ]
     Cluster 1: [ -1.0146 0.8423 -1.3049 -1.2551 ]
-    Cluster 2: [ 1.1674 0.1538 1.0031 1.0296 ]
+    Cluster 2: [ -0.0502 -0.8803 0.3475 0.2821 ]
 ============================
 
-[main] Saved K-Means labels    -> output/kmeans_labels.csv
-[main] Saved K-Means centroids -> output/kmeans_centroids.csv
-[main] K-Means cluster purity: 81.33%
+[main] K-Means cluster purity: 83.33%
 
-[main] Running GPU KNN (k=5, leave-one-out)...
+[main] Saved K-Means outputs -> output/kmeans_*
+[main] Computing silhouette coefficient (cuBLAS + custom kernels)...
 
-=== KNN Result (k=5, leave-one-out) ===
+=== Silhouette Coefficient (k=3) ===
+  Mean silhouette score : 0.4590
+  Interpretation        : Weak structure
+  Per-cluster mean silhouette:
+    Cluster 0 : 0.3475
+    Cluster 1 : 0.6337
+    Cluster 2 : 0.3930
+  GPU time : 2.547 ms
+=====================================
+
+[main] Saved silhouette outputs -> output/silhouette_*
+[main] Running elbow sweep (k=1..8, 3 runs each)...
+
+=== Elbow Method / Silhouette Sweep ===
+  k     Inertia         Silhouette    
+  1     600.0000        0.0000        
+  2     223.7319        0.5802        
+  3     141.1542        0.4621        
+  4     114.6822        0.3872        
+  5     91.1373         0.3460        
+  6     82.1369         0.3472        
+  7     73.0195         0.3400        
+  8     69.4467         0.3448        
+  Optimal k (max silhouette): 2
+  Total GPU time: 4.853 ms
+=======================================
+
+[main] Saved elbow data          -> output/elbow_method.csv
+[main] Running GPU KNN (k=5, metric=euclidean, LOO)...
+
+=== KNN Result (k=5, metric=euclidean, leave-one-out) ===
   Accuracy  : 94.67%
-  GPU time  : 7.770 ms
+  GPU time  : 6.044 ms
   Per-class accuracy:
     Iris-setosa           50/50  (100.0%)
     Iris-versicolor       46/50  (92.0%)
     Iris-virginica        46/50  (92.0%)
 =========================================
 
-[main] Saved KNN predictions   -> output/knn_predictions.csv
-[main] Running GPU PCA (2 components)...
+
+=== Classification Metrics ===
+  Confusion Matrix (rows=true, cols=predicted):
+                        Iris-setosa         Iris-versicolor     Iris-virginica    
+  Iris-setosa           50                  0                   0                 
+  Iris-versicolor       0                   46                  4                 
+  Iris-virginica        0                   4                   46                
+
+  Class                 Precision     Recall         F1
+  Iris-setosa              1.0000     1.0000     1.0000
+  Iris-versicolor          0.9200     0.9200     0.9200
+  Iris-virginica           0.9200     0.9200     0.9200
+  ---
+  Macro avg                0.9467     0.9467     0.9467
+  Weighted F1                               0.9467
+  GPU time (CM kernel): 0.0410 ms
+==============================
+
+[main] Saved KNN (euclidean) outputs -> output/knn_*_euclidean.*
+[main] Running GPU KNN (k=5, metric=manhattan, LOO)...
+
+=== KNN Result (k=5, metric=manhattan, leave-one-out) ===
+  Accuracy  : 95.33%
+  GPU time  : 5.396 ms
+  Per-class accuracy:
+    Iris-setosa           50/50  (100.0%)
+    Iris-versicolor       47/50  (94.0%)
+    Iris-virginica        46/50  (92.0%)
+=========================================
+
+
+=== Classification Metrics ===
+  Confusion Matrix (rows=true, cols=predicted):
+                        Iris-setosa         Iris-versicolor     Iris-virginica    
+  Iris-setosa           50                  0                   0                 
+  Iris-versicolor       0                   47                  3                 
+  Iris-virginica        0                   4                   46                
+
+  Class                 Precision     Recall         F1
+  Iris-setosa              1.0000     1.0000     1.0000
+  Iris-versicolor          0.9216     0.9400     0.9307
+  Iris-virginica           0.9388     0.9200     0.9293
+  ---
+  Macro avg                0.9534     0.9533     0.9533
+  Weighted F1                               0.9533
+  GPU time (CM kernel): 0.0092 ms
+==============================
+
+[main] Saved KNN (manhattan) outputs -> output/knn_*_manhattan.*
+[main] Running GPU KNN (k=5, metric=cosine, LOO)...
+
+=== KNN Result (k=5, metric=cosine, leave-one-out) ===
+  Accuracy  : 86.00%
+  GPU time  : 5.376 ms
+  Per-class accuracy:
+    Iris-setosa           49/50  (98.0%)
+    Iris-versicolor       36/50  (72.0%)
+    Iris-virginica        44/50  (88.0%)
+=========================================
+
+
+=== Classification Metrics ===
+  Confusion Matrix (rows=true, cols=predicted):
+                        Iris-setosa         Iris-versicolor     Iris-virginica    
+  Iris-setosa           49                  1                   0                 
+  Iris-versicolor       0                   36                  14                
+  Iris-virginica        0                   6                   44                
+
+  Class                 Precision     Recall         F1
+  Iris-setosa              1.0000     0.9800     0.9899
+  Iris-versicolor          0.8372     0.7200     0.7742
+  Iris-virginica           0.7586     0.8800     0.8148
+  ---
+  Macro avg                0.8653     0.8600     0.8596
+  Weighted F1                               0.8596
+  GPU time (CM kernel): 0.0082 ms
+==============================
+
+[main] Saved KNN (cosine) outputs -> output/knn_*_cosine.*
+[main] Running GPU PCA (2 components, cuBLAS+cuSolver)...
 
 === PCA Result (2 components) ===
-  GPU time : 10.177 ms
+  GPU time : 9.766 ms
   PC1  eigenvalue=2.9304  var_explained=72.77%  cumulative=72.77%
   PC2  eigenvalue=0.9274  var_explained=23.03%  cumulative=95.80%
   Component loadings (eigenvectors as rows):
@@ -80,9 +187,40 @@
   PC2: [ -0.3723 -0.9256 -0.0211 -0.0654 ]
 ==================================
 
-[main] Saved PCA projection    -> output/pca_projection.csv
-[main] Saved PCA components    -> output/pca_components.csv
-[main] Saved timing results    -> output/timing_results.csv
-[main] Saved summary report    -> output/summary_report.txt
+[main] Saved PCA outputs         -> output/pca_*
+[main] Training GPU Gaussian Naive Bayes (Thrust reductions)...
+[main] Predicting with GNB (log-likelihood kernel)...
+
+=== Gaussian Naive Bayes ===
+  Accuracy         : 96.00%
+  Train GPU time   : (included in model struct)
+  Predict GPU time : 0.0237 ms
+  Per-class accuracy:
+    Iris-setosa           50/50  (100.0%)
+    Iris-versicolor       47/50  (94.0%)
+    Iris-virginica        47/50  (94.0%)
+============================
+
+
+=== Classification Metrics ===
+  Confusion Matrix (rows=true, cols=predicted):
+                        Iris-setosa         Iris-versicolor     Iris-virginica    
+  Iris-setosa           50                  0                   0                 
+  Iris-versicolor       0                   47                  3                 
+  Iris-virginica        0                   3                   47                
+
+  Class                 Precision     Recall         F1
+  Iris-setosa              1.0000     1.0000     1.0000
+  Iris-versicolor          0.9400     0.9400     0.9400
+  Iris-virginica           0.9400     0.9400     0.9400
+  ---
+  Macro avg                0.9600     0.9600     0.9600
+  Weighted F1                               0.9600
+  GPU time (CM kernel): 0.0092 ms
+==============================
+
+[main] Saved GNB outputs         -> output/gnb_*
+[main] Saved timing results      -> output/timing_results.csv
+[main] Saved summary report      -> output/summary_report.txt
 
 [main] Pipeline complete.

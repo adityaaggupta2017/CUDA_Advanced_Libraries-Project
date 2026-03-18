@@ -1,0 +1,7 @@
+metric,value
+k,5
+distance,euclidean
+accuracy,0.946667
+macro_f1,0.946667
+weighted_f1,0.946667
+gpu_ms,6.04352

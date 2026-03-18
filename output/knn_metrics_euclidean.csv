@@ -1,0 +1,6 @@
+class,precision,recall,f1,support
+Iris-setosa,1,1,1,50
+Iris-versicolor,0.92,0.92,0.92,50
+Iris-virginica,0.92,0.92,0.92,50
+macro_avg,0.946667,0.946667,0.946667,
+weighted_avg,,,,0.946667,

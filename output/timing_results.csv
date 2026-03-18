@@ -1,5 +1,10 @@
 algorithm,gpu_time_ms
-normalization,0
-kmeans,0.374784
-knn,7.77011
-pca,10.1766
+kmeans_multi,0.8192
+silhouette,2.54669
+elbow_sweep,4.8528
+knn_euclidean,6.04352
+knn_manhattan,5.39648
+knn_cosine,5.376
+pca,9.76595
+gnb_train,0.753376
+gnb_predict,0.02368

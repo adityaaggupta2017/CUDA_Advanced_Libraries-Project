@@ -1,10 +1,10 @@
 // Copyright 2024 Iris GPU ML Pipeline
 //
-// GPU-accelerated K-Nearest Neighbours classification using cuBLAS.
-// Distance matrix is computed efficiently via the identity:
-//   ||a - b||^2 = ||a||^2 + ||b||^2 - 2 a·b
-// The inner-product matrix (-2*X_test * X_train^T) is computed with
-// a single SGEMM call; squared norms are computed with Thrust.
+// GPU-accelerated K-Nearest Neighbours classification using cuBLAS + custom kernels.
+// Supports three distance metrics:
+//   Euclidean : ||a-b||^2 via SGEMM + norm correction
+//   Manhattan : Σ|a_j - b_j| via custom L1 kernel
+//   Cosine    : 1 - (a·b)/(||a||·||b||) via row-normalisation + SGEMM
 
 #ifndef SRC_KNN_H_
 #define SRC_KNN_H_
@@ -14,27 +14,40 @@
 #include "common.h"
 #include <cublas_v2.h>
 
+// DistanceMetric – selects pairwise distance computation.
+enum class DistanceMetric {
+  kEuclidean = 0,
+  kManhattan  = 1,
+  kCosine     = 2
+};
+
+// DistanceMetricName – human-readable string for logging.
+inline const char* DistanceMetricName(DistanceMetric m) {
+  switch (m) {
+    case DistanceMetric::kEuclidean: return "euclidean";
+    case DistanceMetric::kManhattan: return "manhattan";
+    case DistanceMetric::kCosine:    return "cosine";
+  }
+  return "unknown";
+}
+
 // KNNResult – output of a KNN classification run.
 struct KNNResult {
   std::vector<int> predictions;   // predicted label for each test sample
   std::vector<int> true_labels;   // ground-truth labels (copy from input)
   float  accuracy;                // classification accuracy in [0, 1]
   double gpu_ms;                  // GPU wall-clock time (milliseconds)
+  DistanceMetric metric;          // metric used
 };
 
 // RunKNN – GPU K-Nearest Neighbours classifier (leave-one-out on full dataset).
 //
-//   d_data       : device – row-major normalised feature matrix (n x n_features)
-//   h_labels     : host   – integer class labels [n]
-//   n_samples    : total number of samples
-//   n_features   : number of feature dimensions
-//   k            : number of nearest neighbours to vote over
-//   cublas_handle: an already-created cuBLAS handle
-//   result       : populated on return
+//   metric: DistanceMetric::kEuclidean (default), kManhattan, or kCosine
 void RunKNN(const float* d_data, const std::vector<int>& h_labels,
             int n_samples, int n_features, int k,
             cublasHandle_t cublas_handle,
-            KNNResult* result);
+            KNNResult* result,
+            DistanceMetric metric = DistanceMetric::kEuclidean);
 
 // PrintKNNResult – display result summary to stdout.
 void PrintKNNResult(const KNNResult& result, int k);

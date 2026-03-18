@@ -1,0 +1,8 @@
+metric,value
+n_components,2
+PC1_eigenvalue,2.93035
+PC1_explained_var,0.727704
+PC2_eigenvalue,0.927404
+PC2_explained_var,0.230305
+cumulative_variance,0.95801
+gpu_time_ms,10.1766

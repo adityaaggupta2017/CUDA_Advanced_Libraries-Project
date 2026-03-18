@@ -1,0 +1,5 @@
+algorithm,gpu_time_ms
+normalization,0
+kmeans,0.374784
+knn,7.77011
+pca,10.1766

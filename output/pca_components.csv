@@ -1,0 +1,3 @@
+component,sepal_length_cm,sepal_width_cm,petal_length_cm,petal_width_cm,eigenvalue,explained_variance_ratio
+PC1,0.522372,-0.263355,0.581254,0.565611,2.93035,0.727704
+PC2,-0.372319,-0.925556,-0.0210946,-0.0654158,0.927404,0.230305

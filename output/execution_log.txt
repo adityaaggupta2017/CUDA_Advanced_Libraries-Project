@@ -1,0 +1,88 @@
+============================================================
+  GPU-Accelerated Iris ML Pipeline
+  CUDA Advanced Libraries Capstone Project
+============================================================
+
+=== GPU Device ===
+  Name          : NVIDIA RTX A6000
+  Compute cap.  : 8.6
+  Global mem    : 47.5 GB
+  SMs           : 84
+  Max threads/SM: 1536
+==================
+
+[data_loader] Loaded 150 samples from iris/iris.data
+
+=== Dataset Summary ===
+  Samples   : 150
+  Features  : 4
+  Classes   : 3
+  Class distribution:
+    Iris-setosa = 50
+    Iris-versicolor = 50
+    Iris-virginica = 50
+  Feature statistics (min / max / mean):
+    sepal_length_cm         4.30 / 7.90 / 5.8433
+    sepal_width_cm          2.00 / 4.40 / 3.0540
+    petal_length_cm         1.00 / 6.90 / 3.7587
+    petal_width_cm          0.10 / 2.50 / 1.1987
+=======================
+
+[main] Saved raw data  -> output/raw_data.csv
+
+[main] Running GPU Z-score normalisation...
+
+=== Normalization Statistics (GPU Z-score) ===
+  sepal_length_cm         mean= 5.8433  std= 0.8253
+  sepal_width_cm          mean= 3.0540  std= 0.4321
+  petal_length_cm         mean= 3.7587  std= 1.7585
+  petal_width_cm          mean= 1.1987  std= 0.7606
+==============================================
+
+[main] Saved normalised data -> output/normalised_data.csv
+[main] Running GPU K-Means (k=3, max_iter=300, seed=42)...
+
+=== K-Means Result (k=3) ===
+  Iterations : 9
+  Inertia    : 141.1542
+  GPU time   : 0.375 ms
+  Cluster sizes: 56 50 44 
+  Centroids (normalised space):
+    Cluster 0: [ -0.0114 -0.8729 0.3769 0.3117 ]
+    Cluster 1: [ -1.0146 0.8423 -1.3049 -1.2551 ]
+    Cluster 2: [ 1.1674 0.1538 1.0031 1.0296 ]
+============================
+
+[main] Saved K-Means labels    -> output/kmeans_labels.csv
+[main] Saved K-Means centroids -> output/kmeans_centroids.csv
+[main] K-Means cluster purity: 81.33%
+
+[main] Running GPU KNN (k=5, leave-one-out)...
+
+=== KNN Result (k=5, leave-one-out) ===
+  Accuracy  : 94.67%
+  GPU time  : 7.770 ms
+  Per-class accuracy:
+    Iris-setosa           50/50  (100.0%)
+    Iris-versicolor       46/50  (92.0%)
+    Iris-virginica        46/50  (92.0%)
+=========================================
+
+[main] Saved KNN predictions   -> output/knn_predictions.csv
+[main] Running GPU PCA (2 components)...
+
+=== PCA Result (2 components) ===
+  GPU time : 10.177 ms
+  PC1  eigenvalue=2.9304  var_explained=72.77%  cumulative=72.77%
+  PC2  eigenvalue=0.9274  var_explained=23.03%  cumulative=95.80%
+  Component loadings (eigenvectors as rows):
+  PC1: [ +0.5224 -0.2634 +0.5813 +0.5656 ]
+  PC2: [ -0.3723 -0.9256 -0.0211 -0.0654 ]
+==================================
+
+[main] Saved PCA projection    -> output/pca_projection.csv
+[main] Saved PCA components    -> output/pca_components.csv
+[main] Saved timing results    -> output/timing_results.csv
+[main] Saved summary report    -> output/summary_report.txt
+
+[main] Pipeline complete.

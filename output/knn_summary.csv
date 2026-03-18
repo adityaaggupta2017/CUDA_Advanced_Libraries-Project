@@ -1,0 +1,4 @@
+metric,value
+k,5
+accuracy,0.946667
+gpu_time_ms,7.77011

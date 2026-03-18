@@ -13,13 +13,7 @@
 #include <numeric>
 #include <vector>
 
-#include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
-#include <thrust/functional.h>
-#include <thrust/iterator/counting_iterator.h>
-#include <thrust/iterator/transform_iterator.h>
-#include <thrust/reduce.h>
-#include <thrust/transform.h>
 
 // ---------------------------------------------------------------------------
 // Device kernel: subtract per-column mean to centre the data matrix.
@@ -58,21 +52,16 @@ void RunPCA(const float* d_data, int n_samples, int n_features,
                         n_samples * n_features * sizeof(float),
                         cudaMemcpyDeviceToDevice));
 
-  // Compute per-feature mean using Thrust transform+reduce per column.
+  // Compute per-feature mean on host (dataset is small: 150 x 4).
+  std::vector<float> h_data_copy(n_samples * n_features);
+  CUDA_CHECK(cudaMemcpy(h_data_copy.data(), d_X,
+                        n_samples * n_features * sizeof(float),
+                        cudaMemcpyDeviceToHost));
   std::vector<float> h_mean(n_features, 0.f);
   for (int col = 0; col < n_features; ++col) {
-    auto idx_begin = thrust::make_counting_iterator<int>(0);
-    auto idx_end   = thrust::make_counting_iterator<int>(n_samples);
-    struct ExtractCol {
-      const float* data; int n_features; int col;
-      __device__ float operator()(int row) const {
-        return data[row * n_features + col];
-      }
-    };
-    ExtractCol ec{d_X, n_features, col};
-    auto vb = thrust::make_transform_iterator(idx_begin, ec);
-    auto ve = thrust::make_transform_iterator(idx_end,   ec);
-    float sum = thrust::reduce(vb, ve, 0.f, thrust::plus<float>());
+    float sum = 0.f;
+    for (int row = 0; row < n_samples; ++row)
+      sum += h_data_copy[row * n_features + col];
     h_mean[col] = sum / static_cast<float>(n_samples);
   }
   float* d_mean = nullptr;

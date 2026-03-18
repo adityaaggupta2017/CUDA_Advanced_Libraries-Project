@@ -1,0 +1,6 @@
+metric,value
+k,3
+iterations,9
+inertia,141.154
+purity,0.813333
+gpu_time_ms,0.374784

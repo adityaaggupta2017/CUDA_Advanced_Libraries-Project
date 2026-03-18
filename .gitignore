@@ -1,0 +1,16 @@
+# Compiled binary
+iris_gpu
+
+# Object files
+*.o
+*.obj
+
+# CUDA intermediate files
+*.ptx
+*.cubin
+*.fatbin
+
+# Editor temporaries
+*.swp
+*~
+.DS_Store

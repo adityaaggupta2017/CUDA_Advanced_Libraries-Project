@@ -1,0 +1,16 @@
+GPU-Accelerated Iris ML Pipeline - Summary Report
+==================================================
+
+Dataset : iris/iris.data
+Samples : 150
+Features: 4
+
+Algorithms executed: all
+
+GPU timing (ms):
+  normalization : 0 ms
+  kmeans : 0.374784 ms
+  knn : 7.77011 ms
+  pca : 10.1766 ms
+
+Output files written to: output/
